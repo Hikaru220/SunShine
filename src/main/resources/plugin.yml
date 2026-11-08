@@ -1,0 +1,31 @@
+name: SunShine
+version: '${project.version}'
+main: com.sunshine.plugin.SunShinePlugin
+api-version: '1.21'
+author: SunShine
+description: Minecraft <-> Discord bridge plugin
+website: https://github.com/
+
+softdepend: [PlaceholderAPI, LuckPerms, TerritoryTitles, BlueMap, LiteBans]
+
+libraries:
+  - com.mysql:mysql-connector-j:8.4.0
+  - com.h2database:h2:2.2.224
+
+commands:
+  sunshine:
+    description: Main SunShine command
+    aliases: [ss, sunshinediscord]
+    usage: /sunshine <reload|status|link|unlink|db-sync|admin-unlink|profile|punish|lookup|migrate-flectonepulse>
+  profile:
+    description: Показать профиль игрока (ник, привязка Discord, время онлайна, модерация)
+    usage: /profile <ник>
+    permission: sunshine.profile
+
+permissions:
+  sunshine.admin:
+    description: Allows reloading the SunShine configuration
+    default: op
+  sunshine.profile:
+    description: Доступ к /profile, /sunshine profile, /sunshine punish, /sunshine lookup
+    default: op

@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.sunshine</groupId>
+    <artifactId>SunShine</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>SunShine</name>
+    <description>Minecraft &lt;-&gt; Discord bridge plugin for Paper</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <jda.version>5.2.2</jda.version>
+        <paper.version>1.21.11-R0.1-SNAPSHOT</paper.version>
+        <placeholderapi.version>2.11.6</placeholderapi.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+        <repository>
+            <id>dv8tion</id>
+            <url>https://m2.dv8tion.net/releases</url>
+        </repository>
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
+        </repository>
+        <repository>
+            <id>luckperms</id>
+            <url>https://repo.luckperms.net/</url>
+        </repository>
+        <repository>
+            <id>bluecolored</id>
+            <url>https://repo.bluecolored.de/releases</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>${paper.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>${placeholderapi.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.luckperms</groupId>
+            <artifactId>api</artifactId>
+            <version>5.4</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Отдельный плагин зон/титров (../TerritoryTitles) - SunShine размечает в нём зону при
+             создании/удалении общины. provided - сам TerritoryTitles.jar ставится на сервер отдельно,
+             в шейднутый jar SunShine попадать не должен. -->
+        <dependency>
+            <groupId>com.territorytitles</groupId>
+            <artifactId>TerritoryTitles</artifactId>
+            <version>1.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- BlueMap - опциональная отрисовка территорий на карте (ТЗ раздел 4.2). provided - сам
+             BlueMap ставится на сервер отдельно; если его нет, TerritoryBlueMapIntegration вообще
+             не создаётся (см. SunShinePlugin.setupTerritory()), так что отсутствие плагина в рантайме
+             не приводит к NoClassDefFoundError. -->
+        <dependency>
+            <groupId>de.bluecolored.bluemap</groupId>
+            <artifactId>BlueMapAPI</artifactId>
+            <version>2.7.2</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Console-канал: аппендер на log4j-core Paper-сервера. provided - в шейднутый jar не
+             попадает, на сервере он и так есть (сам Paper на нём работает). -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.24.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Webhook-чат: сборка JSON тела запроса к Discord webhook. JDA и так тянет эту версию
+             транзитивно (видно в shade-логе), фиксируем явно, чтобы она была на compile classpath. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.17.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.dv8tion</groupId>
+            <artifactId>JDA</artifactId>
+            <version>${jda.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>club.minnced</groupId>
+                    <artifactId>opus-java</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- LiteBans: только для компиляции моста наказаний (API внутри jar плагина LiteBans на сервере). В итоговый jar не попадает. -->
+        <dependency>
+            <groupId>com.gitlab.ruany</groupId>
+            <artifactId>litebans-local</artifactId>
+            <version>2.19.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/LiteBans.jar</systemPath>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${project.name}-${project.version}</finalName>
+        <defaultGoal>clean package</defaultGoal>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <excludes>
+                    <exclude>court/fonts/**</exclude>
+                    <exclude>application/**</exclude>
+                </excludes>
+            </resource>
+            <!-- Шрифты и баннер бинарные: фильтрация плейсхолдеров ломает их (MalformedInputException), копируем как есть. -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>court/fonts/**</include>
+                    <include>application/**</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <release>21</release>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>false</minimizeJar>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>net.dv8tion.jda</pattern>
+                                    <shadedPattern>com.sunshine.libs.jda</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.neovisionaries</pattern>
+                                    <shadedPattern>com.sunshine.libs.neovisionaries</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>okhttp3</pattern>
+                                    <shadedPattern>com.sunshine.libs.okhttp3</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>okio</pattern>
+                                    <shadedPattern>com.sunshine.libs.okio</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson</pattern>
+                                    <shadedPattern>com.sunshine.libs.jackson</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.jsoup</pattern>
+                                    <shadedPattern>com.sunshine.libs.jsoup</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>gnu.trove</pattern>
+                                    <shadedPattern>com.sunshine.libs.trove</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

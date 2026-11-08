@@ -1,0 +1,16 @@
+applications:
+  # Automatically whitelist the submitted Minecraft nickname when staff accepts an application.
+  auto-whitelist: true
+  # Console command run to whitelist the player, {player} = their Minecraft nickname.
+  # Default uses the vanilla /whitelist command - change this if you use a plugin like
+  # SimpleWhitelist that has its own command (e.g. "simplewhitelist add {player}" or "swl add {player}").
+  whitelist-command: "whitelistplayer add {player}"
+  # ID of the Discord role to give the applicant when their application is accepted.
+  # Leave blank to not give any role. Right-click the role in Discord (Developer Mode) -> Copy Role ID.
+  accepted-role-id: "1523742073470058516"
+  # ID of a second Discord role given only after the accepted applicant actually joins the
+  # Minecraft server for the first time. Leave blank to not give any second role.
+  join-role-id: "1523740965435871382"
+  panel-title: "Заявки на SunShine"
+  panel-description: "Нажмите кнопку ниже, чтобы подать заявку на сервер."
+  button-label: "Подать заявку"

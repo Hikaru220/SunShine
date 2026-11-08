@@ -1,0 +1,19 @@
+# Сборка
+/target/
+*.jar
+*.zip
+
+# Локальные конфиги с токенами и паролями (в репозиторий не кладём)
+/config-deployed.yml
+/config-full.yml
+/config-new-merged.yml
+
+# Данные игроков
+mirferm-*
+
+# Проприетарная библиотека LiteBans (кладётся вручную, см. README)
+/libs/
+
+# IDE
+/.idea/
+/com/

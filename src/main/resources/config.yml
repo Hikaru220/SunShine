@@ -1,0 +1,334 @@
+# SunShine configuration
+# https://discord.com/developers/applications - create a bot application to get a token
+
+bot:
+  # Token of the Discord bot SunShine should log in as.
+  token: "BOT_TOKEN_HERE"
+  # Text shown as the bot's "Playing ..." status. Supports {online}/{max} placeholders.
+  status: "{online}/{max} игроков онлайн"
+
+channels:
+  # ID of the Discord text channel used for chat bridging.
+  chat: "CHANNEL_ID_HERE"
+  # ID of the Discord text channel used for join/leave/death/server status messages.
+  # Leave blank to reuse the chat channel.
+  events: ""
+  # Optional: ID of a Discord text channel where players may also type their /link code.
+  # Not required - by default players just DM the bot directly with the code.
+  link: ""
+  # ID of the Discord text channel where new whitelist applications are posted for staff review.
+  applications-review: "CHANNEL_ID_HERE"
+  # ID of the Discord text channel where every ban/mute/kick/warn (via /profile or /sunshine punish)
+  # is logged as an embed. Leave blank to disable this log.
+  moderation-log: ""
+
+sync:
+  minecraft-to-discord:
+    enabled: true
+    join:
+      enabled: true
+      format: "**{player}** зашёл на сервер"
+      # Через webhook - от лица игрока (ник + голова скина), а не от бота. Тот же вебхук,
+      # что и для чата, на канале channels.events. Требует "Manage Webhooks" у бота.
+      webhook: false
+    leave:
+      enabled: true
+      format: "**{player}** покинул сервер"
+      webhook: false
+    death:
+      enabled: true
+      format: "☠ {message}"
+      webhook: false
+    chat:
+      enabled: true
+      format: "**{player}**: {message}"
+      webhook:
+        # Отправлять чат в Discord через channel webhook - от лица игрока (его ник и голова
+        # скина как аватар), а не от имени бота. Требует у бота право "Manage Webhooks" на
+        # канале channels.chat. При enabled: true формат выше (format) не применяется - юзернейм
+        # и аватар задаёт сам вебхук.
+        enabled: false
+  discord-to-minecraft:
+    enabled: true
+    chat:
+      # MiniMessage format. Placeholders: <member>, <message> (тег-синтаксис MiniMessage, не {скобки})
+      format: "<gray>[<blue>Discord<gray>]</gray> <white><member></white>: <message>"
+
+linking:
+  # How long (in minutes) a /sunshine link code stays valid.
+  code-expiry-minutes: 10
+  notify-on-link:
+    enabled: false
+    format: "**{player}** привязал(а) Discord аккаунт"
+  # Every time a linked player joins the server, set their Discord server nickname to match
+  # the Minecraft nickname they just joined with. Requires the bot to have the "Manage
+  # Nicknames" permission and a role positioned above the player's roles.
+  sync-nickname-on-join: true
+
+console:
+  # Дублировать весь вывод консоли сервера (лог, стектрейсы, результат команд) в Discord-канал
+  # ниже, и выполнять сообщения из этого канала как команды консоли (для доверенных ролей).
+  enabled: false
+  # ID Discord-канала для консоли.
+  channel-id: ""
+  # ID Discord-роли, участникам которой разрешено выполнять команды консоли сервера, написав
+  # их в channel-id выше.
+  #
+  # !!! ВНИМАНИЕ: ЭТО RCE НА СЕРВЕР ЧЕРЕЗ DISCORD !!!
+  # Любой, у кого есть эта роль, может выполнить ЛЮБУЮ команду консоли (op, stop, whitelist,
+  # ban и т.д.) от имени сервера. Указывайте только ID реальной, доверенной роли (например
+  # "Admin"), а не публичной/автовыдаваемой. Пусто = никакие команды из Discord не выполняются
+  # вообще (по умолчанию отключено, а не разрешено всем).
+  command-role-id: ""
+
+# Односторонняя синхронизация групп LuckPerms -> Discord роли (нужен установленный LuckPerms).
+# LuckPerms -> Discord ТОЛЬКО в одну сторону: смена роли в Discord вручную никак не влияет на
+# группы LuckPerms игрока (обратной синхронизации нет). Синхронизируются только привязанные к
+# Discord игроки, срабатывает при входе на сервер и периодически.
+group-sync:
+  enabled: false
+  mappings:
+    # luckperms-группа: discord-role-id
+    # vip: "123456789012345678"
+    # admin: "234567890123456789"
+
+# /profile в Discord и /sunshine profile в игре: карточка игрока (ник, привязка Discord, время
+# онлайна, группа LuckPerms, кто принял заявку) + кнопки модерации через FlectonePulse.
+profile:
+  enabled: false
+  # Discord-роль, которой доступны кнопки модерации под /profile. Пусто = кнопки скрыты у всех
+  # (fail-closed) - сама карточка профиля при этом всё равно показывается.
+  moderator-role-id: ""
+  # Шаблоны команд FlectonePulse. {player}/{duration}/{reason} подставляются автоматически.
+  # duration для ban/mute - формат FlectonePulse (1d2h3m4s), "-1" = навсегда.
+  # Поменяй, если реальные лейблы команд FlectonePulse на сервере отличаются.
+  commands:
+    ban: "ban {player} {duration} {reason}"
+    mute: "mute {player} {duration} {reason}"
+    kick: "kick {player} {reason}"
+    warn: "warn {player} {reason}"
+  # Слать наказанному игроку личное сообщение в Discord (если его аккаунт привязан) о том, что
+  # ему выдали - действие, причина, срок, кто выдал. Работает для любого наказания, попавшего в
+  # fp_moderation (кнопки /profile, /sunshine punish, прямая команда в консоли/игре).
+  notify-punished-player: true
+
+# Общины/территории - см. ТЗ (Applications/Communities, разметка через отдельный плагин TerritoryTitles).
+territory:
+  enabled: false
+  # Мир, в котором разрешено создавать территории.
+  world: "world"
+  # Discord-роли с доступом к админ-панели / /admin_terra.
+  admin-role-ids: []
+  channels:
+    review: ""  # заявки на рассмотрение (Одобрить/Отклонить) - и создание, и расширение
+    list: ""    # автообновляемый список общин
+    log: ""     # лог админ-действий
+    panel: ""   # единая панель управления
+  list-banner-url: ""
+  size:
+    min: 20
+    max: 300
+  tag:
+    min-length: 2
+    max-length: 6
+
+auth:
+  # If true, players must link their Discord account (via the code flow below) before they
+  # can join the server at all - matches the "SunShineAuth" kick-screen flow.
+  require-link: false
+  # Legacy (&) color-coded kick message shown to unlinked players. Placeholders: {code}, {bot}, {channel}
+  kick-message: |-
+    &cНе удалось подключиться к серверу&7: &9SunShineAuth
+
+    &fТвой код: &b{code}
+    &7Напиши его боту &9{bot}&7 в личные сообщения (ЛС)
+    &7Напиши в ЛС только код: &b{code}
+  # If true, already-linked players get a DM with a Подтвердить/Отклонить button on every join
+  # and login is held until they respond (or the timeout below elapses).
+  require-login-confirmation: false
+  login-confirmation-timeout-seconds: 60
+
+applications:
+  # Automatically whitelist the submitted Minecraft nickname when staff accepts an application.
+  auto-whitelist: true
+  # Console command run to whitelist the player, {player} = their Minecraft nickname.
+  # Default uses the vanilla /whitelist command - change this if you use a plugin like
+  # SimpleWhitelist that has its own command (e.g. "simplewhitelist add {player}" or "swl add {player}").
+  whitelist-command: "whitelist add {player}"
+  # Команда убрать из белого списка, когда одобренную заявку отправляют "Рассмотреть заново".
+  # Пусто = взять whitelist-command и заменить " add " на " remove ".
+  whitelist-remove-command: ""
+  # ID of the Discord role to give the applicant when their application is accepted.
+  # Leave blank to not give any role. Right-click the role in Discord (Developer Mode) -> Copy Role ID.
+  accepted-role-id: ""
+  # ID of a second Discord role given only after the accepted applicant actually joins the
+  # Minecraft server for the first time. Leave blank to not give any second role.
+  join-role-id: ""
+  panel-title: "Заявки на SunShine"
+  panel-description: "Нажмите кнопку ниже, чтобы подать заявку на сервер."
+  button-label: "Подать заявку"
+  # Для каждой заявки создаётся отдельный приватный канал: там модератор видит анкету (с баннером
+  # снизу) и кнопки Принять/Отказать/корзина, а заявителю приходят вопросы. Одобрение и отклонение
+  # публикуются в канале сообщением от вебхука. Выключено = старый режим (карточка в
+  # channels.applications-review и решение в ЛС).
+  rooms:
+    enabled: true
+    # Категория для каналов заявок. Пусто = найдёт или создаст категорию "Заявки на сервер".
+    category-id: ""
+    # Роли, которые видят каналы заявок и принимают/отклоняют их (плюс все с правом "Управление сервером").
+    reviewer-role-ids: []
+    # Пинговать ли эти роли в карточке новой заявки. false = не тегать (они всё равно видят канал).
+    ping-reviewers: false
+    # Роль, которая снимается с игрока при одобрении (например роль "new"). Пусто = не снимать.
+    remove-role-id: ""
+    server-ip: "play.sunshine-mc.ru"
+    # Свой баннер под анкетой: файл PNG/JPG в папке плагина, например "banner.png". Пусто = встроенный.
+    banner-file: ""
+    # Имя и аватар вебхука с одобрением/отклонением (аватар пусто = аватар бота).
+    webhook-name: "SunShine | Проходка"
+    webhook-avatar-url: ""
+    greeting: "Здравствуйте, спасибо за Вашу заявку, до начала игры осталось совсем чуть-чуть."
+    questions:
+      - "Чем вас зацепил наш сервер?"
+      - "Согласны ли вы с правилами проекта?"
+    shop-note: "Если вы заждались получения проходки, то можете купить её на [нашем сайте](https://sunshinesmp.cdonate.ru/)."
+    # Ссылка на трейлер (YouTube и т.п.). Пусто = блок про трейлер не показывается.
+    trailer-url: "https://youtu.be/L8gicWNZL20"
+    trailer-note: "Для принятия заявки обязательно надо поставить лайк и написать комментарий от 3-х слов под этим видео ({url}), приложите скрин."
+    approved: |-
+      ## ✅ Ваша заявка одобрена!
+      Желаем вам приятной игры на проекте SunShine,
+      **IP:** ```{ip}```
+    declined: |-
+      ## ❌ Ваша заявка отклонена!
+      Вы можете подать заявку заново,
+      не забывайте про правила заполнения.
+
+# Зеркало привязок игроков в MySQL: то же, что в linked-accounts.yml (UUID, ник Minecraft,
+# Discord ID, последний IP), плюс суммарное время онлайна. yml остаётся основным хранилищем,
+# сюда данные только дублируются - удобно читать извне (сайт, другой бот и т.п.).
+# Требует MySQL-драйвер (грузится сам через libraries в plugin.yml) и, для времени онлайна,
+# PlaceholderAPI.
+player-db:
+  enabled: false
+  host: "127.0.0.1"
+  port: 3306
+  name: "sunshine"
+  user: "sunshine"
+  password: ""
+  table: "sunshine_players"
+  # Плейсхолдер PlaceholderAPI, который читается при входе/выходе игрока и пишется в колонку
+  # playtime_seconds. По умолчанию - суммарное наигранное время из FlectonePulse (в секундах).
+  # Пусто = не отслеживать время онлайна.
+  playtime-placeholder: "%flectonepulse_online_total%"
+
+# Суд: отдельный Discord-бот (свой токен и личность, как support-бот) - иски, дела, заседания с
+# объявлениями, вердикты, постановления (бан/мут/кик/варн теми же командами, что /profile), штрафы
+# с оплатой монетами прямо из Discord, апелляции, досье игрока. Данные в той же MySQL (player-db).
+# Создай нового бота в Discord Developer Portal, вставь токен, пригласи на сервер (scope bot +
+# applications.commands, права: управление каналами, отправка сообщений, прикрепление файлов).
+court:
+  enabled: false
+  token: "COURT_BOT_TOKEN_HERE"
+  # Роли судей: принимают иски, назначают заседания, выносят вердикты, постановления, штрафы.
+  judge-role-ids: []
+  # Главные судьи: всё то же + решают апелляции. Администраторы сервера Discord считаются главными.
+  chief-judge-role-ids: []
+  channels:
+    # Куда приходят новые иски (с кнопками Принять/Отклонить) - канал для судей.
+    inbox: ""
+    # Публичные объявления: принятие иска, заседание (назначено/началось), итоги, штрафы, постановления.
+    announcements: ""
+    # Апелляции (кнопки для главных судей). Пусто = в inbox.
+    appeals: ""
+    # Аудит: закрытия дел, сбои списания, протоколы. Пусто = не вести.
+    log: ""
+    # Категория для комнат дел (delo-0001). Пусто = найдёт или создаст категорию "Суд".
+    case-category: ""
+  # Часовой пояс, в котором судья вводит дату заседания (дд.мм.гггг чч:мм).
+  timezone: "Europe/Moscow"
+  max-open-cases-per-player: 3
+  # Сколько часов у ответчика на апелляцию после вердикта (у штрафа - после выставления).
+  appeal-window-hours: 48
+  # Протокол переписки комнаты дела файлом в log при закрытии. ВНИМАНИЕ: нужен Message Content
+  # Intent у бота суда в Developer Portal (Bot -> Privileged Gateway Intents), иначе бот не войдёт.
+  transcripts: false
+  fines:
+    default-days: 3
+    max-amount: 2304
+    # За сколько часов до срока слать напоминание в ЛС (0 = не слать).
+    reminder-hours: 24
+    currency-name: "ар"
+    # ITEM - штраф платится предметами из инвентаря игрока (ары = алмазная руда), игрок должен быть
+    # на сервере в момент оплаты. COMMAND - командой консоли + проверка баланса (для виртуальной валюты).
+    payment: ITEM
+    # Для ITEM: какие предметы считаются арами. Первый в списке выдаётся при возврате отменённого штрафа.
+    items:
+      - DIAMOND_ORE
+      - DEEPSLATE_DIAMOND_ORE
+    # Только для COMMAND. Плейсхолдеры: {player}, {amount}.
+    charge-command: "sunadmin remove {player} {amount}"
+    refund-command: "sunadmin add {player} {amount}"
+    # Только для COMMAND: по нему проверяем, что денег хватает и что списание реально прошло. Пусто = не проверять.
+    balance-placeholder: "%suncoins_balance%"
+    # Команда при просрочке ({player}, {amount}, {id}), например "mute {player} 1d Неуплата штрафа". Пусто = ничего.
+    overdue-command: ""
+  # Решение по делу готовым документом-картинкой (бланк A4 с рамкой и печатью) в объявления, комнату
+  # дела и ЛС сторонам. Если нарисовать не вышло - обычный embed. Свой бланк: положи PNG/JPG
+  # (лучше 1240x1754) в папку плагина и укажи путь, например "court-blank.png" - тогда рисуется
+  # только текст, начиная с content-top пикселей сверху и с отступами margin по бокам.
+  document:
+    enabled: true
+    court-name: "СУД SUNSHINE"
+    background: ""
+    content-top: 260
+    margin: 110
+  # Знак судьи (весы) в чате и табе через PlaceholderAPI: %sunshinecourt_suffix% (весы после ника у
+  # судьи, у которого уже есть префикс), %sunshinecourt_prefix% (весы перед ником у судьи БЕЗ префикса),
+  # %sunshinecourt_mark% (просто знак), %sunshinecourt_role% (текст роли). У остальных пусто.
+  # Судья определяется по Discord-ролям judge-role-ids / chief-judge-role-ids, нужен привязанный аккаунт.
+  tags:
+    enabled: true
+    judge: "&6⚖"
+    chief: "&c⚖"
+    # По нему решаем, есть ли у игрока префикс (непустой = есть, весы пойдут суффиксом).
+    prefix-placeholder: "%luckperms_prefix%"
+  # Команды отмены наказаний при удовлетворении апелляции ({player}).
+  revoke:
+    ban: "unban {player}"
+    mute: "unmute {player}"
+
+# Автобэкап MySQL (той же базы, что player-db: FlectonePulse, общины, sunshine_players). Раз в
+# interval-hours плагин выгружает ВСЕ таблицы в сжатый SQL-файл в plugins/SunShine/<directory>/,
+# бэкапы старше keep-hours удаляются (самый свежий не удаляется никогда). Берёт доступ из
+# player-db.host/port/name/user/password (player-db.enabled при этом может быть выключен).
+# Ручной запуск: /sunshine backup. Восстановление: phpMyAdmin -> база -> Импорт -> файл .sql.gz.
+backup:
+  enabled: true
+  interval-hours: 4
+  keep-hours: 48
+  directory: "backups"
+  # Копия каждого бэкапа в Discord-канал (вне хостинга) - пусто = не отправлять. В дампе есть IP
+  # игроков, канал должен быть закрытым (только админы). Лимит файла - как у сервера Discord.
+  discord-channel-id: ""
+
+# Второй, независимый Discord-бот (Sunshine_Support), запускаемый внутри этого же плагина -
+# тикеты техподдержки и заявки на вступление в команду. Отдельный токен/личность от bot.token выше.
+support:
+  enabled: false
+  token: "SUPPORT_BOT_TOKEN_HERE"
+  tickets:
+    # Пусто = бот сам создаст категорию "Тикеты" при первом использовании /setup-tickets.
+    category-id: ""
+    # Пусто = бот сам создаст роль "Support". Можно перечислить несколько ID ролей.
+    support-role-ids: []
+    # Канал, куда support-бот пишет лог закрытых тикетов (кто закрыл, чей тикет, когда). Пусто = лог выключен.
+    # Бот должен видеть этот канал и иметь право писать в него.
+    log-channel-id: ""
+  staff-applications:
+    # Пусто = бот сам создаст категорию "Заявки" при первом использовании /setup-applications.
+    category-id: ""
+    # Роль, у которой есть доступ к кнопке "Создать заявку". Пусто = может подать заявку кто угодно.
+    required-role-id: ""
+    # Пусто = бот сам создаст роль "Recruiter". Можно перечислить несколько ID ролей.
+    reviewer-role-ids: []

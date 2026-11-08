@@ -1,0 +1,18 @@
+# Вставить этот блок в конец существующего config.yml на сервере (тот же уровень отступа, что у "bot:").
+# token: возьмите тот же токен, что уже лежит в Sunshine_Support/.env (DISCORD_TOKEN) на локальной машине.
+support:
+  enabled: true
+  token: "ВСТАВЬТЕ_СЮДА_ТОКЕН_ИЗ_Sunshine_Support/.env"
+  tickets:
+    category-id: ""
+    support-role-ids:
+      - "1523739403502223421"
+      - "1523739754561274066"
+      - "1523737716095975666"
+      - "1523737786518208682"
+  staff-applications:
+    category-id: ""
+    required-role-id: "1523742073470058516"
+    reviewer-role-ids:
+      - "1523739662043185224"
+      - "1523737140305854514"
